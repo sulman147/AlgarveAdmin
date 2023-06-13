@@ -1,7 +1,8 @@
 {
     "rewrites": [
         {
-            "destination": "http://example.com/:match*"
+            "source": "/(.*)",
+            "destination": "http://your-react-app.vercel.app/$1"
         }
     ]
 }
