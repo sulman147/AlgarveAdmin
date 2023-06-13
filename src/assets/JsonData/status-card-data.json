@@ -1,0 +1,22 @@
+[
+    {
+        "icon": "bx bx-receipt",
+        "count": "50",
+        "title": "Total Users"
+    },
+    {
+        "icon": "bx bx-receipt",
+        "count": "20",
+        "title": "Total Listing"
+    },
+    {
+        "icon": "bx bx-book",
+        "count": "100",
+        "title": "Total Blogs"
+    },
+    {
+        "icon": "bx bx-book",
+        "count": "80",
+        "title": "Pending Request"
+    }
+]

@@ -1,0 +1,27 @@
+[
+    {
+        "display_name": "Dashboard",
+        "route": "/",
+        "icon": "bx bx-category-alt"
+    },
+    {
+        "display_name": "Add Blog",
+        "route": "/addblog",
+        "icon": "bx bx-package"
+    },
+    {
+        "display_name": "Add Listing",
+        "route": "/addlisting",
+        "icon": "bx bx-package"
+    },
+    {
+        "display_name": "Add Location",
+        "route": "/addlocation",
+        "icon": "bx bx-package"
+    },
+    {
+        "display_name": "Categories and Features",
+        "route": "/catandFeatures",
+        "icon": "bx bx-package"
+    }
+]

@@ -1,0 +1,17 @@
+[
+    {
+        "link": "./",
+        "icon": "bx bx-user",
+        "content": "Profile"
+    },
+    {
+        "link": "./Meetings",
+        "icon": "bx bx-cog",
+        "content": "Settings"
+    },
+    {
+        "link": "./addmeetings",
+        "icon": "bx bx-log-out-circle bx-rotate-180",
+        "content": "Logout"
+    }
+]

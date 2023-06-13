@@ -1,0 +1,162 @@
+[
+    {
+        "id": 1,
+        "city": "Lagos",
+        "latlng": [
+            37.1000,
+            -8.6667
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 2,
+        "city": "Albufeira",
+        "latlng": [
+            37.0889,
+            -8.2511
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 3,
+        "city": "Faro",
+        "latlng": [
+            37.0161,
+            -7.9350
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 4,
+        "city": "Tavira",
+        "latlng": [
+            37.1309,
+            -7.6506
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 5,
+        "city": "Portimão",
+        "latlng": [
+            37.1333,
+            -8.5333
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 6,
+        "city": "Carvoeiro",
+        "latlng": [
+            37.1000,
+            -8.4667
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 7,
+        "city": "Olhão",
+        "latlng": [
+            37.0278,
+            -7.8389
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 8,
+        "city": "Aljezur",
+        "latlng": [
+            37.3178,
+            -8.8000
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 9,
+        "city": "Armação de Pêra",
+        "latlng": [
+            37.1000,
+            -8.3667
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 10,
+        "city": "Silves",
+        "latlng": [
+            37.1833,
+            -8.4333
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 11,
+        "city": "Vila Real de Santo António",
+        "latlng": [
+            37.2000,
+            -7.4167
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 12,
+        "city": "Monchique",
+        "latlng": [
+            37.3167,
+            -8.6000
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 13,
+        "city": "Loulé",
+        "latlng": [
+            37.1440,
+            -8.0235
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 14,
+        "city": "Castro Marim",
+        "latlng": [
+            37.2167,
+            -7.4500
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 15,
+        "city": "Lagoa",
+        "latlng": [
+            37.1347,
+            -8.4528
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    },
+    {
+        "id": 16,
+        "city": "São Brás de Alportel",
+        "latlng": [
+            37.1500,
+            -7.8833
+        ],
+        "country": "Portugal",
+        "iso2": "PT"
+    }
+]
