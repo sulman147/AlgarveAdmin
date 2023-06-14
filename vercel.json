@@ -1,18 +1,12 @@
 {
-    "rewrites": [
+    "version": 2,
+    "routes": [
         {
-            "source": "/(.*)",
-            "destination": "https://algarve-admin.com/$1",
-            "has": [
-                {
-                    "type": "host",
-                    "value": "algarve-admin"
-                }
-            ]
-        },
-        {
-            "source": "/(.*)",
-            "destination": "http://algarve-admin.com/$1"
+            "src": "/(.*)",
+            "headers": {
+                "Strict-Transport-Security": "max-age=0"
+            },
+            "continue": true
         }
     ]
 }
