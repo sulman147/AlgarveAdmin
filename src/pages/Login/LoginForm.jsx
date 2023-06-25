@@ -9,6 +9,8 @@ import {
 } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
 import axios from "axios";
+import toastr from "toastr";
+import "toastr/build/toastr.min.css";
 
 const LoginForm = () => {
   const history = useHistory();
@@ -32,20 +34,23 @@ const LoginForm = () => {
         )
         .then((response) => {
           // Handle success response
-          console.log(response.data);
+
           if (response.data.success) {
+            toastr.success("Login Successfully");
             localStorage.setItem("isauthenticated", response.data.success);
             localStorage.setItem("accessToken", response.data.data.accessToken);
             localStorage.setItem("email", response.data.data.email);
             localStorage.setItem("firstName", response.data.data.first_name);
             localStorage.setItem("lastName", response.data.data.last_name);
             localStorage.setItem("username", response.data.data.username);
-            history.push("/");
+            window.location.href = "http://algarve.zappta-launch.com/";
+          } else {
+            toastr.error(response.data.message);
           }
         })
         .catch((error) => {
           // Handle error response
-          console.error(error);
+          toastr.error("Login Fail");
         });
     }
   };

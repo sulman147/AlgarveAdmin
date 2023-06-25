@@ -21,6 +21,25 @@ const AddBlogForm = () => {
       Authorization: `Bearer ${token}`,
     },
   };
+  const ReadMore = ({ children }) => {
+    const text = children;
+    const [isReadMore, setIsReadMore] = useState(true);
+    const toggleReadMore = () => {
+      setIsReadMore(!isReadMore);
+    };
+    return (
+      <p className="text">
+        {isReadMore ? text.slice(0, 350) : text}
+        <span onClick={toggleReadMore} className="read-or-hide">
+          {isReadMore ? (
+            <span className="font-bold text-pink-750 ">&ensp;...read more</span>
+          ) : (
+            <span className="font-bold text-pink-750 ">&ensp;show less</span>
+          )}
+        </span>
+      </p>
+    );
+  };
 
   const fetchData = async () => {
     try {
@@ -170,13 +189,15 @@ const AddBlogForm = () => {
               <Paper elevation={3} style={{ padding: "1rem" }}>
                 <img
                   src={blog.image}
-                  width={300}
-                  height={400}
+                  width={250}
+                  height={350}
                   alt={""}
                   unoptimized={true}
                 />
                 <Typography variant="h5">{blog.title}</Typography>
-                <Typography variant="body1">{blog.description}</Typography>
+                <Typography variant="body1">
+                  <ReadMore>{blog.description}</ReadMore>
+                </Typography>
                 <Button
                   variant="outlined"
                   color="primary"

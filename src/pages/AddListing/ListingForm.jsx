@@ -20,24 +20,27 @@ import axios from "axios";
 import countries from "./algarve.json";
 import AddFeatureForm from "./AddFeatureFormModal";
 import AddCategoryFormModal from "./AddCategoryFormModal";
+import toastr from "toastr";
+import "toastr/build/toastr.min.css";
+import MapWithPinpoint from "../../components/MapWithpinPoint";
 
 const initialFormState = {
   id: "",
   title: "",
   location: "",
-  category: "",
+  category_id: "",
   description: "",
   no_of_guests: "",
   no_of_adults: "",
   no_of_pets: "",
-  city: "Albufeira",
+  city: "",
   country: "Portugal",
   stay_type: 2,
   video_link: "",
   features: [],
   rent: "",
   contact_number: "",
-  images: [],
+  gallery: [],
 };
 const useStyles = makeStyles(() => ({
   formContainer: {
@@ -71,28 +74,6 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const categories = [1, 2, 3];
-const dummyData = [
-  {
-    id: 1,
-    title: "Listing 1",
-    location: "Location 1",
-    category: "Category 1",
-    description: "Description 1",
-
-    no_of_guests: 5,
-    no_of_adults: 2,
-    no_of_pets: 1,
-    features: ["1", "3", "4", "6", "2"],
-    rent: 100,
-    contact_number: "1234567890",
-    images: [
-      "https://server.cashbackforever.net/public/blogs/1686647843657-3.jpg",
-      "https://server.cashbackforever.net/public/blogs/1686647843657-3.jpg",
-    ],
-  },
-  // Add more dummy data here
-];
 let isEditing = false;
 const Api = "http://server.cashbackforever.net:5500/api/";
 const token = localStorage.getItem("accessToken");
@@ -105,8 +86,10 @@ const config = {
 const ListingForm = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [formValues, setFormValues] = useState(initialFormState);
-  const [listings, setListings] = useState(dummyData);
-
+  const [listings, setListings] = useState([]);
+  const [Features, setFeatures] = useState([]);
+  const [Categories, setCategories] = useState([]);
+  const [location, setLocation] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const classes = useStyles();
@@ -134,6 +117,10 @@ const ListingForm = () => {
       console.error(error);
     }
   };
+  const settingLocation = (data) => {
+    setFormValues({ ...formValues, location: data });
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -142,55 +129,69 @@ const ListingForm = () => {
     const { name, checked } = e.target;
     const updatedFeatures = checked
       ? [...formValues.features, name]
-      : formValues.features.filter((feature) => feature !== name);
+      : formValues.features.filter((feature) => feature !== `${name}`);
     setFormValues({ ...formValues, features: updatedFeatures });
   };
   const handleImageChange = (e) => {
     isEditing = false;
-    const files = Array.from(e.target.files);
+    const files = e.target.files;
+    let newfiles = [];
+    for (let i = 0; i < files.length; i++) {
+      newfiles.push(files[i]);
+    }
     setFormValues((prevValues) => ({
       ...prevValues,
-      images: files,
+      gallery: newfiles,
     }));
   };
-  const token = localStorage.getItem("accessToken");
 
-  const config = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
   const endpoint = "http://server.cashbackforever.net:5500/api/admin/listings";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (formValues.id) {
-      const response = await axios.put(
-        `${Api}admin/listings/${formValues.id}`,
-        formValues,
-        config
-      );
+      await axios
+        .put(`${Api}admin/listings/${formValues.id}`, formValues, config)
+        .then((res) => {
+          if (res.data.success) {
+            console.log("this is message", res.data.message);
+            Addimage(formValues.id);
+
+            // setBlogData(initialBlogData);
+          } else {
+            toastr.error(res.data.message);
+          }
+        });
       // const updatedBlogs = blogs.filter((blog) => blog.id !== blogId);
       // setBlogs(updatedBlogs);
-      if (response.data.success) {
-        console.log("this is message", response.data.message);
-        Addimage(formValues.id);
-
-        // setBlogData(initialBlogData);
-      }
     } else {
       const response = await axios.post(endpoint, formValues, config);
       if (response.data.success) {
-        console.log(response.data.message);
         Addimage(response.data.data.id);
+      } else {
+        toastr.error(response.data.message);
       }
     }
   };
+  //   function getBase64(file) {
+  //    var reader = new FileReader();
+  //    reader.readAsDataURL(file);
+  //    reader.onload = function () {
+  //      console.log(reader.result);
+  //    };
+  //    reader.onerror = function (error) {
+  //      console.log('Error: ', error);
+  //    };
+  // }
 
   const Addimage = (id) => {
     const formData = new FormData();
-    formData.append("image", formValues.images);
+    for (let i = 0; i < formValues.gallery.length; i++) {
+      formData.append("gallery", formValues.gallery[i]);
+    }
+    // formValues.gallery.forEach((item) => formData.append(item));
+    // formData.append("gallery", formValues.gallery);
     axios
       .put(`${Api}admin/listings/gallery/${id}`, formData, {
         headers: {
@@ -200,10 +201,11 @@ const ListingForm = () => {
       })
       .then((resp) => {
         console.log("this is res after image uploading", resp);
+        setFormValues(initialFormState);
         fetchData();
-        // return true
       });
   };
+
   const handleCatButtonClick = () => {
     setIsCatModalOpen(true);
   };
@@ -221,17 +223,22 @@ const ListingForm = () => {
   };
 
   const handleEdit = (listing) => {
-    console.log("this is listing", listing);
     isEditing = true;
     // Populate the form with the selected listing data
-    setFormValues(listing);
+    setFormValues({ ...listing, stay_type: listing.stay_type_id });
     setActiveStep(0); // Move to the 1st step
   };
 
-  const handleDelete = (id) => {
-    setListings((prevListings) =>
-      prevListings.filter((listing) => listing.id !== id)
-    );
+  const handleDelete = async (id) => {
+    const response = await axios.delete(`${Api}admin/listings/${id}`, config);
+    // const updatedBlogs = blogs.filter((blog) => blog.id !== blogId);
+    // setBlogs(updatedBlogs);
+    if (response.data.success) {
+      toastr.success(response.data.message);
+      fetchData();
+    } else {
+      toastr.error(response.data.message);
+    }
   };
 
   const handleNext = () => {
@@ -259,17 +266,17 @@ const ListingForm = () => {
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth variant="outlined">
-                <InputLabel>Location</InputLabel>
+                <InputLabel>City</InputLabel>
                 <Select
-                  name="location"
-                  value={formValues.location}
+                  name="city"
+                  value={formValues.city}
                   onChange={handleFormChange}
-                  label="Location"
+                  label="City"
                 >
-                  <MenuItem value="">Select Location</MenuItem>
+                  <MenuItem value="">Select City</MenuItem>
                   {/* Render dropdown options dynamically */}
                   {countries.map((item) => (
-                    <MenuItem key={item.id} value={item.id}>
+                    <MenuItem key={item.id} value={item.city}>
                       {item.city}
                     </MenuItem>
                   ))}
@@ -280,16 +287,16 @@ const ListingForm = () => {
               <FormControl fullWidth variant="outlined">
                 <InputLabel>Category</InputLabel>
                 <Select
-                  name="category"
-                  value={formValues.category}
+                  name="category_id"
+                  value={formValues.category_id}
                   onChange={handleFormChange}
                   label="Category"
                 >
                   <MenuItem value="">Select Category</MenuItem>
                   {/* Render dropdown options dynamically */}
-                  {categories.map((category) => (
-                    <MenuItem key={category} value={category}>
-                      {`category ${category}`}
+                  {Categories.map((category) => (
+                    <MenuItem key={category} value={category.id}>
+                      {category.name}
                     </MenuItem>
                   ))}
                 </Select>
@@ -347,17 +354,17 @@ const ListingForm = () => {
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <p>Features:</p>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+              {Features.map((item) => (
                 <FormControlLabel
-                  key={num}
+                  key={item.id}
                   control={
                     <Checkbox
-                      checked={formValues.features.includes(`${num}`)}
+                      checked={formValues.features.includes(`${item.id}`)}
                       onChange={handleCheckboxChange}
-                      name={`${num}`}
+                      name={item.id}
                     />
                   }
-                  label={`Feature ${num}`}
+                  label={item.name}
                 />
               ))}
             </Grid>
@@ -392,6 +399,8 @@ const ListingForm = () => {
                 onChange={handleFormChange}
               />
             </Grid>
+            <h4>Please Select Your Location:</h4>
+            <MapWithPinpoint choseLocation={settingLocation} />
           </Grid>
         );
       case 2:
@@ -416,11 +425,11 @@ const ListingForm = () => {
                 </Button>
               </label>
               <Box mt={2}>
-                {formValues.images.map((image, index) => (
+                {formValues.gallery.map((image, index) => (
                   <img
                     key={index}
-                    src={isEditing ? image : URL.createObjectURL(image)}
-                    alt={`Image ${index}`}
+                    src={isEditing ? image.image : URL.createObjectURL(image)}
+                    alt="Listing Images"
                     width="200"
                     height="200"
                     style={{
@@ -455,7 +464,11 @@ const ListingForm = () => {
               >
                 Add Feature
               </Button>
-              <AddFeatureForm isOpen={isModalOpen} onClose={handleCloseModal} />
+              <AddFeatureForm
+                isOpen={isModalOpen}
+                newFeatures={setFeatures}
+                onClose={handleCloseModal}
+              />
             </div>
             <div style={{ marginLeft: "10px" }}>
               <Button
@@ -468,6 +481,7 @@ const ListingForm = () => {
               <AddCategoryFormModal
                 isOpen={isCatModalOpen}
                 onClose={handleCatCloseModal}
+                newCategories={setCategories}
               />
             </div>
           </div>
@@ -514,11 +528,17 @@ const ListingForm = () => {
           <Typography variant="subtitle1">{listing.location}</Typography>
           {/* Render other listing details */}
           <Box mt={2}>
-            <Button variant="contained" onClick={() => handleEdit(listing)}>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => handleEdit(listing)}
+            >
               Edit
             </Button>
             <Button
-              variant="contained"
+              style={{ marginLeft: "10px" }}
+              variant="outlined"
+              color="secondary"
               onClick={() => handleDelete(listing.id)}
             >
               Delete
