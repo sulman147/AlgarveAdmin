@@ -18,10 +18,5 @@
         "display_name": "Add Location",
         "route": "/addlocation",
         "icon": "bx bx-package"
-    },
-    {
-        "display_name": "Categories and Features",
-        "route": "/catandFeatures",
-        "icon": "bx bx-package"
     }
 ]
