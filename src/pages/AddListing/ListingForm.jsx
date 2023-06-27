@@ -400,7 +400,11 @@ const ListingForm = () => {
               />
             </Grid>
             <h4>Please Select Your Location:</h4>
-            <MapWithPinpoint choseLocation={settingLocation} />
+            {console.log("first", formValues)}
+            <MapWithPinpoint
+              choseLocation={settingLocation}
+              pos={formValues.location}
+            />
           </Grid>
         );
       case 2:

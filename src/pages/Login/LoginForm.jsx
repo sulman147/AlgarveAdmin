@@ -43,7 +43,7 @@ const LoginForm = () => {
             localStorage.setItem("firstName", response.data.data.first_name);
             localStorage.setItem("lastName", response.data.data.last_name);
             localStorage.setItem("username", response.data.data.username);
-            window.location.href = "http://algarve.zappta-launch.com/";
+            window.location.href = "/";
           } else {
             toastr.error(response.data.message);
           }
