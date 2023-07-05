@@ -14,22 +14,22 @@ import {
   Typography,
 } from "@material-ui/core";
 import { Edit, Delete } from "@material-ui/icons";
-import axios from "axios";
+import api from "../../api/api";
 import countries from "../AddListing/algarve.json";
 
 const AddLocationForm = () => {
   const [cities, setCities] = useState([]);
   const [formData, setFormData] = useState({
     city: "",
-    latlng: ["", ""],
+    lat: "",
+    lon: "",
     country: "",
   });
 
   const fetchCities = async () => {
     try {
-      setCities(countries);
-      //   const response = await axios.get("https://your-api-endpoint.com/cities");
-      //   setCities(countries);
+      const response = await api.get("admin/city");
+      setCities(response.data);
     } catch (error) {
       console.log(error);
     }
@@ -50,7 +50,7 @@ const AddLocationForm = () => {
   const handleLatLngChange = (index, event) => {
     const { value } = event.target;
     setFormData((prevState) => {
-      const latlng = [...prevState.latlng];
+      const latlng = [...prevState.lat];
       latlng[index] = value;
       return { ...prevState, latlng };
     });
@@ -60,16 +60,18 @@ const AddLocationForm = () => {
     event.preventDefault();
     try {
       console.log("this is form data", formData);
-      //   if (formData.id) {
-      //     await axios.put(`https://your-api-endpoint.com/cities/${formData.id}`, formData);
-      //   } else {
-      //     await axios.post('https://your-api-endpoint.com/cities', formData);
-      //   }
+      if (formData.id) {
+        await api.put(`admin/city/${formData.id}`, formData);
+      } else {
+        await api.post("admin/city", formData);
+      }
       setFormData({
         city: "",
-        latlng: ["", ""],
+        lat: "",
+        lon: "",
         country: "",
       });
+
       fetchCities();
     } catch (error) {
       console.log(error);
@@ -82,7 +84,7 @@ const AddLocationForm = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://your-api-endpoint.com/cities/${id}`);
+      await api.delete(`admin/city/${id}`);
       fetchCities();
     } catch (error) {
       console.log(error);
@@ -115,9 +117,9 @@ const AddLocationForm = () => {
                       label="Latitude"
                       variant="outlined"
                       fullWidth
-                      name="latlng"
-                      value={formData.latlng[0]}
-                      onChange={(event) => handleLatLngChange(0, event)}
+                      name="lat"
+                      value={formData.lat}
+                      onChange={handleInputChange}
                     />
                   </Grid>
                   <Grid item xs={12}>
@@ -125,9 +127,9 @@ const AddLocationForm = () => {
                       label="Longitude"
                       variant="outlined"
                       fullWidth
-                      name="latlng"
-                      value={formData.latlng[1]}
-                      onChange={(event) => handleLatLngChange(1, event)}
+                      name="lon"
+                      value={formData.lon}
+                      onChange={handleInputChange}
                     />
                   </Grid>
                   <Grid item xs={12}>
@@ -171,8 +173,8 @@ const AddLocationForm = () => {
                         <TableRow key={city.id}>
                           <TableCell>{city.id}</TableCell>
                           <TableCell>{city.city}</TableCell>
-                          <TableCell>{city.latlng[0]}</TableCell>
-                          <TableCell>{city.latlng[1]}</TableCell>
+                          <TableCell>{city.lat}</TableCell>
+                          <TableCell>{city.lon}</TableCell>
                           <TableCell>{city.country}</TableCell>
                           <TableCell>
                             <Button

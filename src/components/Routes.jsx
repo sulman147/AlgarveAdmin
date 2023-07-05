@@ -15,6 +15,8 @@ import Subscribers from "../pages/Subscribers/Subscribers";
 
 const Routes = () => {
   const isAuthenticated = localStorage.getItem("isauthenticated");
+  const accesstoken = localStorage.getItem("accessToken");
+  console.log("auth", accesstoken);
   return (
     <Switch>
       <Route path="/Login" exact component={Login} />

@@ -8,9 +8,9 @@ import {
   Box,
 } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
-import axios from "axios";
 import toastr from "toastr";
 import "toastr/build/toastr.min.css";
+import api from "../../api/api";
 
 const LoginForm = () => {
   const history = useHistory();
@@ -23,15 +23,13 @@ const LoginForm = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+  console.log("first,", api);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      axios
-        .post(
-          "http://server.cashbackforever.net:5500/api/admin/login",
-          formData
-        )
+      api
+        .post(`/admin/login`, formData)
         .then((response) => {
           // Handle success response
 

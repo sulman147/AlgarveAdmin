@@ -14,8 +14,8 @@ import {
   Typography,
   TableRow,
 } from "@material-ui/core";
-import axios from "axios";
 import toastr from "toastr";
+import api from "../../api/api";
 import "toastr/build/toastr.min.css";
 
 const useStyles = makeStyles((theme) => ({
@@ -33,7 +33,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Api = "http://server.cashbackforever.net:5500/api/";
 const token = localStorage.getItem("accessToken");
 const config = {
   headers: {
@@ -54,11 +53,7 @@ const AddFeatureForm = ({ isOpen, newFeatures, onClose }) => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${Api}admin/features`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get(`admin/features`);
 
       // Process the response data
       const data = response.data;
@@ -78,8 +73,8 @@ const AddFeatureForm = ({ isOpen, newFeatures, onClose }) => {
     event.preventDefault();
     // Add the new feature to the list
     if (edit_id) {
-      await axios
-        .put(`${Api}admin/features/${edit_id}`, { name: feature }, config)
+      await api
+        .put(`admin/features/${edit_id}`, { name: feature })
         .then((res) => {
           if (res.data.success) {
             toastr.success(res.data.message);
@@ -93,19 +88,17 @@ const AddFeatureForm = ({ isOpen, newFeatures, onClose }) => {
           }
         });
     } else {
-      await axios
-        .post(`${Api}admin/features`, { name: feature }, config)
-        .then((res) => {
-          if (res.data.success) {
-            toastr.success(res.data.message);
-            fetchData();
-            setFeature("");
-            isEdit = false;
-            // setBlogData(initialBlogData);
-          } else {
-            toastr.error(res.data.message);
-          }
-        });
+      await api.post(`admin/features`, { name: feature }).then((res) => {
+        if (res.data.success) {
+          toastr.success(res.data.message);
+          fetchData();
+          setFeature("");
+          isEdit = false;
+          // setBlogData(initialBlogData);
+        } else {
+          toastr.error(res.data.message);
+        }
+      });
     }
     // setFeatureList((prevList) => [...prevList, feature]);
     // Clear the input field
@@ -121,7 +114,7 @@ const AddFeatureForm = ({ isOpen, newFeatures, onClose }) => {
 
   const handleDelete = async (id) => {
     // Remove the feature from the list
-    await axios.delete(`${Api}admin/features/${id}`, config).then((res) => {
+    await api.delete(`${api}admin/features/${id}`).then((res) => {
       if (res.data.success) {
         toastr.success(res.data.message);
         fetchData();

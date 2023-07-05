@@ -2,25 +2,19 @@ import React, { useEffect, useState } from "react";
 import { Grid, Paper, Typography, TextField, Button } from "@material-ui/core";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import axios from "axios";
+import api from "../../api/api";
 
-const initialBlogData = {
+let initialBlogData = {
   id: "",
   title: "",
-  video_link: "",
+  video_link: "pinkoo",
   description: "",
   image: null,
 };
-const Api = "http://server.cashbackforever.net:5500/api/";
 const AddBlogForm = () => {
   const [blogData, setBlogData] = useState(initialBlogData);
   const [blogs, setBlogs] = useState([]);
-  const token = localStorage.getItem("accessToken");
-  const config = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
+
   const ReadMore = ({ children }) => {
     const text = children;
     const [isReadMore, setIsReadMore] = useState(true);
@@ -43,11 +37,7 @@ const AddBlogForm = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${Api}admin/blogs`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get(`admin/blogs`);
 
       // Process the response data
       const data = response.data;
@@ -57,10 +47,6 @@ const AddBlogForm = () => {
       console.error(error);
     }
   };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -76,11 +62,13 @@ const AddBlogForm = () => {
   };
 
   const handleEditBlog = (blog) => {
+    initialBlogData = { ...blog };
     setBlogData(blog);
+    console.log("edit blog", blogData);
   };
-
+  console.log("1", blogData);
   const handleDeleteBlog = async (blogId) => {
-    const response = await axios.delete(`${Api}admin/blogs/${blogId}`, config);
+    const response = await api.delete(`admin/blogs/${blogId}`);
     // const updatedBlogs = blogs.filter((blog) => blog.id !== blogId);
     // setBlogs(updatedBlogs);
     if (response.data.success) {
@@ -89,16 +77,12 @@ const AddBlogForm = () => {
     }
   };
 
-  const endpoint = `${Api}admin/blogs`;
+  const endpoint = `admin/blogs`;
   const handleAddBlog = async (e) => {
     e.preventDefault();
 
     if (blogData.id) {
-      const response = await axios.put(
-        `${Api}admin/blogs/${blogData.id}`,
-        blogData,
-        config
-      );
+      const response = await api.put(`admin/blogs/${blogData.id}`, blogData);
       // const updatedBlogs = blogs.filter((blog) => blog.id !== blogId);
       // setBlogs(updatedBlogs);
       if (response.data.success) {
@@ -108,7 +92,7 @@ const AddBlogForm = () => {
         // setBlogData(initialBlogData);
       }
     } else {
-      const response = await axios.post(endpoint, blogData, config);
+      const response = await api.post(endpoint, blogData);
       if (response.data.success) {
         console.log(response.data.message);
         Addimage(response.data.data.id);
@@ -117,13 +101,13 @@ const AddBlogForm = () => {
   };
 
   const Addimage = (id) => {
+    console.log("blog img", blogData.image);
     const formData = new FormData();
     formData.append("image", blogData.image);
-    axios
-      .put(`${Api}admin/blogs/image/${id}`, formData, {
+    api
+      .put(`admin/blogs/image/${id}`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.accessToken}`,
+          "Content-Type": blogData.image.type,
         },
       })
       .then((resp) => {
@@ -132,7 +116,9 @@ const AddBlogForm = () => {
         // return true
       });
   };
-
+  useEffect(() => {
+    fetchData();
+  }, []);
   return (
     <Grid container justifyContent="center">
       <Grid item xs={8}>

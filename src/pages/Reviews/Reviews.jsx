@@ -14,7 +14,7 @@ import Rating from "@material-ui/lab/Rating";
 
 import EditIcon from "@material-ui/icons/Edit";
 import DeleteIcon from "@material-ui/icons/Delete";
-import axios from "axios";
+import api from "../../api/api";
 
 const Reviews = () => {
   const [features, setFeatures] = useState([
@@ -49,7 +49,7 @@ const Reviews = () => {
     // Replace this with your API endpoint and logic for updating data
     const endpoint = type === "category" ? "/api/categories" : "/api/features";
 
-    axios
+    api
       .put(endpoint, row)
       .then((response) => {
         // Handle success response
@@ -66,7 +66,7 @@ const Reviews = () => {
     const endpoint =
       type === "category" ? `/api/categories/${id}` : `/api/features/${id}`;
 
-    axios
+    api
       .delete(endpoint)
       .then((response) => {
         // Handle success response

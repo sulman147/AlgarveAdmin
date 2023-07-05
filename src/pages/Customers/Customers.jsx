@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Paper,
   Table,
@@ -11,35 +11,9 @@ import {
 } from "@material-ui/core";
 import EditIcon from "@material-ui/icons/Edit";
 import DeleteIcon from "@material-ui/icons/Delete";
-import axios from "axios";
-
+import api from "../../api/api";
 const Customers = () => {
-  const [customers, setFeatures] = useState([
-    {
-      id: 1,
-      name: "Shoaib Ali",
-      user_name: "shoaibkiani2",
-      email: "shoaibkiani2@gmail.com",
-    },
-    {
-      id: 1,
-      name: "Shoaib Ali",
-      user_name: "shoaibkiani2",
-      email: "shoaibkiani2@gmail.com",
-    },
-    {
-      id: 1,
-      name: "Shoaib Ali",
-      user_name: "shoaibkiani2",
-      email: "shoaibkiani2@gmail.com",
-    },
-    {
-      id: 1,
-      name: "Shoaib Ali",
-      user_name: "shoaibkiani2",
-      email: "shoaibkiani2@gmail.com",
-    },
-
+  const [customers, setCustomers] = useState([
     // Add more feature objects as needed
   ]);
 
@@ -47,7 +21,7 @@ const Customers = () => {
   //   // Replace this with your API endpoint and logic for updating data
   //   const endpoint = type === "category" ? "/api/categories" : "/api/features";
 
-  //   axios
+  //   api
   //     .put(endpoint, row)
   //     .then((response) => {
   //       // Handle success response
@@ -64,7 +38,7 @@ const Customers = () => {
   //   const endpoint =
   //     type === "category" ? `/api/categories/${id}` : `/api/features/${id}`;
 
-  //   axios
+  //   api
   //     .delete(endpoint)
   //     .then((response) => {
   //       // Handle success response
@@ -73,7 +47,7 @@ const Customers = () => {
   //       if (type === "category") {
   //         setCategories(categories.filter((category) => category.id !== id));
   //       } else {
-  //         setFeatures(features.filter((feature) => feature.id !== id));
+  //         setCustomers(features.filter((feature) => feature.id !== id));
   //       }
   //     })
   //     .catch((error) => {
@@ -81,6 +55,23 @@ const Customers = () => {
   //       console.error(error);
   //     });
   // };
+
+  const fetchData = async () => {
+    try {
+      const response = await api.get(`admin/users`);
+
+      // Process the response data
+      const data = response.data;
+      setCustomers(data);
+    } catch (error) {
+      // Handle any errors
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <div className="flex">
@@ -102,7 +93,7 @@ const Customers = () => {
               {customers.map((customer, Index) => (
                 <TableRow key={customer.id}>
                   <TableCell>{Index + 1}</TableCell>
-                  <TableCell>{customer.user_name}</TableCell>
+                  <TableCell>{customer.email.split("@")[0]}</TableCell>
                   <TableCell>{customer.name}</TableCell>{" "}
                   <TableCell>{customer.email}</TableCell>
                   <TableCell>

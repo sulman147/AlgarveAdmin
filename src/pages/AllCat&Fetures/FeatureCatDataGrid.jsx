@@ -11,7 +11,7 @@ import {
 } from "@material-ui/core";
 import EditIcon from "@material-ui/icons/Edit";
 import DeleteIcon from "@material-ui/icons/Delete";
-import axios from "axios";
+import api from "../../api/api";
 
 const FeatureCatDataGrid = () => {
   const [categories, setCategories] = useState([
@@ -30,7 +30,7 @@ const FeatureCatDataGrid = () => {
     // Replace this with your API endpoint and logic for updating data
     const endpoint = type === "category" ? "/api/categories" : "/api/features";
 
-    axios
+    api
       .put(endpoint, row)
       .then((response) => {
         // Handle success response
@@ -47,7 +47,7 @@ const FeatureCatDataGrid = () => {
     const endpoint =
       type === "category" ? `/api/categories/${id}` : `/api/features/${id}`;
 
-    axios
+    api
       .delete(endpoint)
       .then((response) => {
         // Handle success response
