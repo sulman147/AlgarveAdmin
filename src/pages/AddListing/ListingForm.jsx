@@ -102,8 +102,6 @@ const ListingForm = () => {
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const classes = useStyles();
 
-  console.log("form values", formValues);
-
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setFormValues((prevValues) => ({
@@ -138,6 +136,7 @@ const ListingForm = () => {
       // Process the response data
       const data = response.data;
       setagentsList(data?.Data);
+      return data;
     } catch (error) {
       // Handle any errors
       console.error(error);
@@ -163,6 +162,8 @@ const ListingForm = () => {
       // Process the response data
       const data = response.data;
       setAgentProductsList(data?.Data);
+
+      return data;
     } catch (error) {
       // Handle any errors
       console.error(error);
@@ -186,16 +187,24 @@ const ListingForm = () => {
       location: data,
     });
   };
+
+  const [loc, setloc] = useState("");
   const settingLocationByDropDown = (e) => {
-    console.log("dd", e);
-    setFormValues({
-      ...formValues,
-      lat: e.target.value.lat,
-      lon: e.target.value.lon,
-      city: e.target.value.city,
-      country: e.target.value.country,
-      location: e.target.value.city + "," + e.target.value.country,
-    });
+    setloc(e.target?.value);
+
+    if (e.target?.value) {
+      let selectedLocation = locations.find((o) => o.city === e.target?.value);
+
+      console.log("selected", selectedLocation);
+      setFormValues((prev) => ({
+        ...prev,
+        lat: selectedLocation.lat,
+        lon: selectedLocation.lon,
+        city: selectedLocation.city,
+        country: selectedLocation.country,
+        location: selectedLocation.city + " , " + selectedLocation.country,
+      }));
+    }
   };
 
   useEffect(() => {
@@ -215,7 +224,7 @@ const ListingForm = () => {
     const { name, checked } = e.target;
     const updatedFeatures = checked
       ? [...formValues.features, name]
-      : formValues.features.filter((feature) => feature !== `${name}`);
+      : formValues?.features?.filter((feature) => feature !== `${name}`);
     setFormValues({ ...formValues, features: updatedFeatures });
   };
   const handleImageChange = (e) => {
@@ -223,7 +232,7 @@ const ListingForm = () => {
     const files = e.target.files;
     let newfiles = [];
     for (let i = 0; i < files.length; i++) {
-      newfiles.push(files[i]);
+      newfiles?.push(files[i]);
     }
     setFormValues((prevValues) => ({
       ...prevValues,
@@ -276,8 +285,8 @@ const ListingForm = () => {
 
   const Addimage = (id) => {
     const formData = new FormData();
-    for (let i = 0; i < formValues.gallery.length; i++) {
-      formData.append("gallery", formValues.gallery[i]);
+    for (let i = 0; i < formValues?.gallery?.length; i++) {
+      formData.append("gallery", formValues?.gallery[i]);
     }
     // formValues.gallery.forEach((item) => formData.append(item));
     // formData.append("gallery", formValues.gallery);
@@ -304,10 +313,21 @@ const ListingForm = () => {
     setIsModalOpen(false);
   };
 
-  const handleEdit = (listing) => {
+  const handleEdit = async (listing) => {
     isEditing = true;
     // Populate the form with the selected listing data
-    setFormValues({ ...listing, stay_type: listing.stay_type_id });
+    //  setSelectProduct({})
+    const ag = await fetchAgents();
+
+    setSelectAgent(ag?.Data?.find((a) => a.Id == listing.agent_id));
+
+    // const pd = await fetchAgentsProducts(listing?.product_id);
+
+    // setSelectProduct(pd?.Data?.find((a) => a.Id == listing.product_id))
+
+    console.log("ima listing", listing);
+    setFormValues({ ...listing, stay_type: listing.stay_type });
+
     setActiveStep(0); // Move to the 1st step
   };
 
@@ -341,7 +361,7 @@ const ListingForm = () => {
                 <InputLabel>Agents</InputLabel>
                 <Select
                   name="Agent"
-                  value={selectedAgent}
+                  value={isEditing ? formValues.agent_id : selectedAgent}
                   onChange={(e) => {
                     setSelectAgent(e.target.value);
                     handleFormChange(e);
@@ -349,9 +369,9 @@ const ListingForm = () => {
                   label="Agent"
                 >
                   <MenuItem value="">Select Agent</MenuItem>
-                  {/* Render dropdown options dynamically */}
+
                   {agentList?.map((agent) => (
-                    <MenuItem key={agent.Id} value={agent.Id}>
+                    <MenuItem key={agent.Id} value={agent?.Id}>
                       {agent.BrandName}
                     </MenuItem>
                   ))}
@@ -363,25 +383,24 @@ const ListingForm = () => {
                 <InputLabel>Product</InputLabel>
                 <Select
                   name="Product"
-                  value={selectedProduct}
+                  value={isEditing ? formValues.agent_id : selectedProduct}
                   onChange={(e) => {
-                    setSelectProduct(e.target.value);
+                    setSelectProduct(e.target?.value);
                     setFormValues((prevValues) => ({
                       ...prevValues,
-                      title: e.target.value.Name,
-                      long_description: e.target.value.Description,
-                      short_description: e.target.value.ShortDescription,
-                      additional_info: e.target.value.AdditionalInformation,
-                      image_logo: e.target.value.ImageLogo,
-                      product_id: e.target.value.Id,
+                      title: e.target?.value?.Name,
+                      long_description: e.target?.value?.Description,
+                      short_description: e.target?.value?.ShortDescription,
+                      additional_info: e.target?.value?.AdditionalInformation,
+                      image_logo: e.target.value?.ImageLogo,
+                      product_id: e.target.value?.Id,
                       agent_id: selectedAgent,
                     }));
                   }}
                   label="Product"
                 >
-                  {console.log("prod", selectedProduct)}
                   <MenuItem value="">Select Product</MenuItem>
-                  {/* Render dropdown options dynamically */}
+
                   {agentProductsList?.map((agent) => (
                     <MenuItem key={agent.Id} value={agent}>
                       {agent.Name}
@@ -396,40 +415,22 @@ const ListingForm = () => {
                 name="title"
                 label="Title"
                 variant="outlined"
-                value={formValues.title}
+                value={formValues?.title}
                 onChange={handleFormChange}
               />
             </Grid>
-            {/* <Grid item xs={12}>
-              <FormControl fullWidth variant="outlined">
-                <InputLabel>City</InputLabel>
-                <Select
-                  name="city"
-                  value={formValues.city}
-                  onChange={handleFormChange}
-                  label="City"
-                >
-                  <MenuItem value="">Select City</MenuItem>
-                 Render dropdown options dynamically 
-                  {countries.map((item) => (
-                    <MenuItem key={item.id} value={item.city}>
-                      {item.city}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid> */}
+
             <Grid item xs={12}>
               <FormControl fullWidth variant="outlined">
                 <InputLabel>Category</InputLabel>
                 <Select
                   name="category_id"
-                  value={formValues.category_id}
+                  value={formValues?.category_id}
                   onChange={handleFormChange}
                   label="Category"
                 >
                   <MenuItem value="">Select Category</MenuItem>
-                  {/* Render dropdown options dynamically */}
+
                   {Categories?.map((category) => (
                     <MenuItem key={category} value={category.id}>
                       {category.name}
@@ -441,35 +442,14 @@ const ListingForm = () => {
 
             <Grid item xs={12}>
               <FormControl fullWidth variant="outlined">
-                <InputLabel>Features</InputLabel>
-                <Select
-                  multiple
-                  name="features"
-                  value={formValues.features}
-                  onChange={handleFormChange}
-                  label="features"
-                >
-                  <MenuItem value="">Select Features</MenuItem>
-                  {/* Render dropdown options dynamically */}
-                  {F.map((category) => (
-                    <MenuItem key={category} value={category.id}>
-                      {category.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth variant="outlined">
                 <InputLabel>Stay Type</InputLabel>
                 <Select
                   name="stay_type"
-                  value={formValues.stay_type}
+                  value={formValues?.stay_type}
                   onChange={handleFormChange}
                   label="Category"
                 >
                   <MenuItem value="">Stay Type</MenuItem>
-                  {/* Render dropdown options dynamically */}
                   <MenuItem key={"1"} value={"Night Stay"}>
                     Night Stay
                   </MenuItem>
@@ -482,18 +462,7 @@ const ListingForm = () => {
                 </Select>
               </FormControl>
             </Grid>
-            {/* <Grid item xs={12}>
-              <TextField
-                fullWidth
-                name="description"
-                label="Description"
-                multiline
-                rows={4}
-                variant="outlined"
-                value={formValues.description}
-                onChange={handleFormChange}
-              />
-            </Grid> */}
+
             <Grid
               item
               xs={12}
@@ -512,10 +481,6 @@ const ListingForm = () => {
                 onChange={handleInputChangedescription}
                 style={{ marginBottom: "1rem" }}
               />
-              {/* <Editor
-                editorText={"jkjkljkjkljl"}
-                setEditorText={handleEditorChange}
-              /> */}
             </Grid>
 
             <Grid item xs={12}>
@@ -525,7 +490,7 @@ const ListingForm = () => {
                 label="No of Guests"
                 type="number"
                 variant="outlined"
-                value={formValues.no_of_guests}
+                value={formValues?.no_of_guests}
                 onChange={handleFormChange}
               />
             </Grid>
@@ -536,7 +501,7 @@ const ListingForm = () => {
                 label="No of Adults"
                 type="number"
                 variant="outlined"
-                value={formValues.no_of_adults}
+                value={formValues?.no_of_adults}
                 onChange={handleFormChange}
               />
             </Grid>
@@ -547,7 +512,7 @@ const ListingForm = () => {
                 label="No of Pets"
                 type="number"
                 variant="outlined"
-                value={formValues.no_of_pets}
+                value={formValues?.no_of_pets}
                 onChange={handleFormChange}
               />
             </Grid>
@@ -558,12 +523,12 @@ const ListingForm = () => {
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <p>Features:</p>
-              {Features.map((item) => (
+              {Features?.map((item) => (
                 <FormControlLabel
                   key={item.id}
                   control={
                     <Checkbox
-                      checked={formValues.features.includes(`${item.id}`)}
+                      checked={formValues?.features?.includes(`${item.id}`)}
                       onChange={handleCheckboxChange}
                       name={item.id}
                     />
@@ -608,15 +573,18 @@ const ListingForm = () => {
               <FormControl fullWidth variant="outlined">
                 <InputLabel>Location</InputLabel>
                 <Select
-                  name="loc"
-                  value={formValues.location}
+                  name="locations"
+                  value={formValues.city}
                   onChange={settingLocationByDropDown}
-                  label="loc"
+                  defaultValue={""}
+                  label="locations"
                 >
-                  <MenuItem value="">Select Location</MenuItem>
+                  <MenuItem value="" disabled>
+                    Select Location
+                  </MenuItem>
                   {/* Render dropdown options dynamically */}
                   {locations?.map((category) => (
-                    <MenuItem key={category.id} value={category}>
+                    <MenuItem key={category.id} value={category.city}>
                       {category.city}
                     </MenuItem>
                   ))}
@@ -628,7 +596,11 @@ const ListingForm = () => {
             {console.log("first", formValues)}
             <MapWithPinpoint
               choseLocation={settingLocation}
-              pos={formValues.lat ? [formValues.lat, formValues.lon] : [0, 0]}
+              pos={
+                formValues.lat
+                  ? [formValues.lat, formValues.lon]
+                  : [33.7077, 73.0498]
+              }
             />
           </Grid>
         );
@@ -654,7 +626,7 @@ const ListingForm = () => {
                 </Button>
               </label>
               <Box mt={2}>
-                {formValues.gallery.map((image, index) => (
+                {formValues?.gallery?.map((image, index) => (
                   <img
                     key={index}
                     src={isEditing ? image.image : URL.createObjectURL(image)}
@@ -752,7 +724,7 @@ const ListingForm = () => {
       <Typography variant="h4" align="center" gutterBottom>
         All Listing
       </Typography>
-      {listings.map((listing) => (
+      {listings?.map((listing) => (
         <Box key={listing.id} bgcolor="white" my={2} p={2} border={1}>
           <Typography variant="h6">{listing.title}</Typography>
           <Typography variant="subtitle1">{listing.location}</Typography>

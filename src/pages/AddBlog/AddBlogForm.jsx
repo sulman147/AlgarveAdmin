@@ -7,7 +7,7 @@ import api from "../../api/api";
 let initialBlogData = {
   id: "",
   title: "",
-  video_link: "pinkoo",
+  video_link: "",
   description: "",
   image: null,
 };
@@ -26,7 +26,9 @@ const AddBlogForm = () => {
         {isReadMore ? text.slice(0, 350) : text}
         <span onClick={toggleReadMore} className="read-or-hide">
           {isReadMore ? (
-            <span className="font-bold text-pink-750 ">&ensp;...read more</span>
+            <span className="font-bold text-pink-750 text-underline">
+              &ensp;...read more
+            </span>
           ) : (
             <span className="font-bold text-pink-750 ">&ensp;show less</span>
           )}
@@ -104,17 +106,11 @@ const AddBlogForm = () => {
     console.log("blog img", blogData.image);
     const formData = new FormData();
     formData.append("image", blogData.image);
-    api
-      .put(`admin/blogs/image/${id}`, formData, {
-        headers: {
-          "Content-Type": blogData.image.type,
-        },
-      })
-      .then((resp) => {
-        console.log("this is res after image uploading", resp);
-        fetchData();
-        // return true
-      });
+    api.put(`admin/blogs/image/${id}`, formData).then((resp) => {
+      console.log("this is res after image uploading", resp);
+      fetchData();
+      // return true
+    });
   };
   useEffect(() => {
     fetchData();
@@ -172,7 +168,10 @@ const AddBlogForm = () => {
         <Grid container spacing={2}>
           {blogs.map((blog) => (
             <Grid item key={blog.id} xs={12} md={6} lg={3}>
-              <Paper elevation={3} style={{ padding: "1rem" }}>
+              <Paper
+                elevation={3}
+                style={{ padding: "1rem", overflow: "hidden" }}
+              >
                 <img
                   src={blog.image}
                   width={250}
