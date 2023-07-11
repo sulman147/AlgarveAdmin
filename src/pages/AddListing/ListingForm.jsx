@@ -16,16 +16,16 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import { PhotoCamera } from "@material-ui/icons";
-import axios from "axios";
+import api from "../../api/api";
 import countries from "./algarve.json";
 import AddFeatureForm from "./AddFeatureFormModal";
 import AddCategoryFormModal from "./AddCategoryFormModal";
 import toastr from "toastr";
 import "toastr/build/toastr.min.css";
 import MapWithPinpoint from "../../components/MapWithpinPoint";
-
+import Editor from "../../components/texteditor/editor";
+import ReactQuill from "react-quill";
 const initialFormState = {
-  id: "",
   title: "",
   location: "",
   category_id: "",
@@ -35,12 +35,21 @@ const initialFormState = {
   no_of_pets: "",
   city: "",
   country: "Portugal",
-  stay_type: 2,
+  stay_type: "",
   video_link: "",
   features: [],
   rent: "",
   contact_number: "",
   gallery: [],
+
+  lat: "",
+  lon: "",
+  short_description: "",
+  long_description: "", // From pluralo api pluralo -> agent's products.
+  additional_info: "", //From pluralo api pluralo -> agent's products.
+  image_logo: "", //From pluralo api pluralo -> agent's products.
+  agent_id: "", //From pluralo api pluralo -> selected agent.
+  product_id: "", //From pluralo api pluralo -> agent's products selected product.
 };
 const useStyles = makeStyles(() => ({
   formContainer: {
@@ -75,24 +84,24 @@ const useStyles = makeStyles(() => ({
 }));
 
 let isEditing = false;
-const Api = "http://server.cashbackforever.net:5500/api/";
-const token = localStorage.getItem("accessToken");
-const config = {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-};
 
 const ListingForm = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [formValues, setFormValues] = useState(initialFormState);
   const [listings, setListings] = useState([]);
+  const [agentList, setagentsList] = useState([]);
+  const [selectedAgent, setSelectAgent] = useState(null);
+  const [agentProductsList, setAgentProductsList] = useState([]);
+  const [selectedProduct, setSelectProduct] = useState(null);
+  const [F, setF] = useState([]);
+
+  const [locations, setLocations] = useState([]);
   const [Features, setFeatures] = useState([]);
   const [Categories, setCategories] = useState([]);
-  const [location, setLocation] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const classes = useStyles();
+
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setFormValues((prevValues) => ({
@@ -101,13 +110,16 @@ const ListingForm = () => {
     }));
   };
 
+  const handleInputChangedescription = (e) => {
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      ["long_description"]: e,
+    }));
+  };
+
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${Api}admin/listings`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get(`admin/listings`);
 
       // Process the response data
       const data = response.data;
@@ -117,19 +129,102 @@ const ListingForm = () => {
       console.error(error);
     }
   };
+  const fetchAgents = async () => {
+    try {
+      const response = await api.get(`suppliers`);
+
+      // Process the response data
+      const data = response.data;
+      setagentsList(data?.Data);
+      return data;
+    } catch (error) {
+      // Handle any errors
+      console.error(error);
+    }
+  };
+
+  const fetchFeatures = async () => {
+    try {
+      const response = await api.get(`admin/features`);
+
+      // Process the response data
+      const data = response.data;
+      setF(data);
+    } catch (error) {
+      // Handle any errors
+      console.error(error);
+    }
+  };
+  const fetchAgentsProducts = async (agentId) => {
+    try {
+      const response = await api.get(`suppliers/${agentId}`);
+
+      // Process the response data
+      const data = response.data;
+      setAgentProductsList(data?.Data);
+
+      return data;
+    } catch (error) {
+      // Handle any errors
+      console.error(error);
+    }
+  };
+  const fetchLocations = async () => {
+    try {
+      const response = await api.get("admin/city");
+      setLocations(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const settingLocation = (data) => {
-    setFormValues({ ...formValues, location: data });
+    const coordinates = data.split(",");
+    setFormValues({
+      ...formValues,
+      lat: coordinates[0],
+      lon: coordinates[1],
+
+      location: data,
+    });
+  };
+
+  const [loc, setloc] = useState("");
+  const settingLocationByDropDown = (e) => {
+    setloc(e.target?.value);
+
+    if (e.target?.value) {
+      let selectedLocation = locations.find((o) => o.city === e.target?.value);
+
+      console.log("selected", selectedLocation);
+      setFormValues((prev) => ({
+        ...prev,
+        lat: selectedLocation.lat,
+        lon: selectedLocation.lon,
+        city: selectedLocation.city,
+        country: selectedLocation.country,
+        location: selectedLocation.city + " , " + selectedLocation.country,
+      }));
+    }
   };
 
   useEffect(() => {
     fetchData();
+    fetchAgents();
+    fetchFeatures();
+    fetchLocations();
   }, []);
+
+  useEffect(() => {
+    if (selectedAgent != null) {
+      fetchAgentsProducts(selectedAgent);
+    }
+  }, [selectedAgent]);
 
   const handleCheckboxChange = (e) => {
     const { name, checked } = e.target;
     const updatedFeatures = checked
       ? [...formValues.features, name]
-      : formValues.features.filter((feature) => feature !== `${name}`);
+      : formValues?.features?.filter((feature) => feature !== `${name}`);
     setFormValues({ ...formValues, features: updatedFeatures });
   };
   const handleImageChange = (e) => {
@@ -137,7 +232,7 @@ const ListingForm = () => {
     const files = e.target.files;
     let newfiles = [];
     for (let i = 0; i < files.length; i++) {
-      newfiles.push(files[i]);
+      newfiles?.push(files[i]);
     }
     setFormValues((prevValues) => ({
       ...prevValues,
@@ -145,18 +240,19 @@ const ListingForm = () => {
     }));
   };
 
-  const endpoint = "http://server.cashbackforever.net:5500/api/admin/listings";
+  const endpoint = `/admin/listings`;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (formValues.id) {
-      await axios
-        .put(`${Api}admin/listings/${formValues.id}`, formValues, config)
+      await api
+        .put(`admin/listings/${formValues.id}`, formValues)
         .then((res) => {
           if (res.data.success) {
             console.log("this is message", res.data.message);
             Addimage(formValues.id);
+            toastr.error(res.data.message);
 
             // setBlogData(initialBlogData);
           } else {
@@ -166,8 +262,10 @@ const ListingForm = () => {
       // const updatedBlogs = blogs.filter((blog) => blog.id !== blogId);
       // setBlogs(updatedBlogs);
     } else {
-      const response = await axios.post(endpoint, formValues, config);
+      const response = await api.post(endpoint, formValues);
+
       if (response.data.success) {
+        toastr.success("New listing added");
         Addimage(response.data.data.id);
       } else {
         toastr.error(response.data.message);
@@ -187,23 +285,16 @@ const ListingForm = () => {
 
   const Addimage = (id) => {
     const formData = new FormData();
-    for (let i = 0; i < formValues.gallery.length; i++) {
-      formData.append("gallery", formValues.gallery[i]);
+    for (let i = 0; i < formValues?.gallery?.length; i++) {
+      formData.append("gallery", formValues?.gallery[i]);
     }
     // formValues.gallery.forEach((item) => formData.append(item));
     // formData.append("gallery", formValues.gallery);
-    axios
-      .put(`${Api}admin/listings/gallery/${id}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.accessToken}`,
-        },
-      })
-      .then((resp) => {
-        console.log("this is res after image uploading", resp);
-        setFormValues(initialFormState);
-        fetchData();
-      });
+    api.put(`admin/listings/gallery/${id}`, formData).then((resp) => {
+      console.log("this is res after image uploading", resp);
+      setFormValues(initialFormState);
+      fetchData();
+    });
   };
 
   const handleCatButtonClick = () => {
@@ -222,15 +313,26 @@ const ListingForm = () => {
     setIsModalOpen(false);
   };
 
-  const handleEdit = (listing) => {
+  const handleEdit = async (listing) => {
     isEditing = true;
     // Populate the form with the selected listing data
-    setFormValues({ ...listing, stay_type: listing.stay_type_id });
+    //  setSelectProduct({})
+    const ag = await fetchAgents();
+
+    setSelectAgent(ag?.Data?.find((a) => a.Id == listing.agent_id));
+
+    // const pd = await fetchAgentsProducts(listing?.product_id);
+
+    // setSelectProduct(pd?.Data?.find((a) => a.Id == listing.product_id))
+
+    console.log("ima listing", listing);
+    setFormValues({ ...listing, stay_type: listing.stay_type });
+
     setActiveStep(0); // Move to the 1st step
   };
 
   const handleDelete = async (id) => {
-    const response = await axios.delete(`${Api}admin/listings/${id}`, config);
+    const response = await api.delete(`admin/listings/${id}`);
     // const updatedBlogs = blogs.filter((blog) => blog.id !== blogId);
     // setBlogs(updatedBlogs);
     if (response.data.success) {
@@ -255,29 +357,22 @@ const ListingForm = () => {
         return (
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                name="title"
-                label="Title"
-                variant="outlined"
-                value={formValues.title}
-                onChange={handleFormChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
               <FormControl fullWidth variant="outlined">
-                <InputLabel>City</InputLabel>
+                <InputLabel>Agents</InputLabel>
                 <Select
-                  name="city"
-                  value={formValues.city}
-                  onChange={handleFormChange}
-                  label="City"
+                  name="Agent"
+                  value={isEditing ? formValues.agent_id : selectedAgent}
+                  onChange={(e) => {
+                    setSelectAgent(e.target.value);
+                    handleFormChange(e);
+                  }}
+                  label="Agent"
                 >
-                  <MenuItem value="">Select City</MenuItem>
-                  {/* Render dropdown options dynamically */}
-                  {countries.map((item) => (
-                    <MenuItem key={item.id} value={item.city}>
-                      {item.city}
+                  <MenuItem value="">Select Agent</MenuItem>
+
+                  {agentList?.map((agent) => (
+                    <MenuItem key={agent.Id} value={agent?.Id}>
+                      {agent.BrandName}
                     </MenuItem>
                   ))}
                 </Select>
@@ -285,16 +380,58 @@ const ListingForm = () => {
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth variant="outlined">
+                <InputLabel>Product</InputLabel>
+                <Select
+                  name="Product"
+                  value={isEditing ? formValues.agent_id : selectedProduct}
+                  onChange={(e) => {
+                    setSelectProduct(e.target?.value);
+                    setFormValues((prevValues) => ({
+                      ...prevValues,
+                      title: e.target?.value?.Name,
+                      long_description: e.target?.value?.Description,
+                      short_description: e.target?.value?.ShortDescription,
+                      additional_info: e.target?.value?.AdditionalInformation,
+                      image_logo: e.target.value?.ImageLogo,
+                      product_id: e.target.value?.Id,
+                      agent_id: selectedAgent,
+                    }));
+                  }}
+                  label="Product"
+                >
+                  <MenuItem value="">Select Product</MenuItem>
+
+                  {agentProductsList?.map((agent) => (
+                    <MenuItem key={agent.Id} value={agent}>
+                      {agent.Name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                name="title"
+                label="Title"
+                variant="outlined"
+                value={formValues?.title}
+                onChange={handleFormChange}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <FormControl fullWidth variant="outlined">
                 <InputLabel>Category</InputLabel>
                 <Select
                   name="category_id"
-                  value={formValues.category_id}
+                  value={formValues?.category_id}
                   onChange={handleFormChange}
                   label="Category"
                 >
                   <MenuItem value="">Select Category</MenuItem>
-                  {/* Render dropdown options dynamically */}
-                  {Categories.map((category) => (
+
+                  {Categories?.map((category) => (
                     <MenuItem key={category} value={category.id}>
                       {category.name}
                     </MenuItem>
@@ -302,18 +439,50 @@ const ListingForm = () => {
                 </Select>
               </FormControl>
             </Grid>
+
             <Grid item xs={12}>
-              <TextField
-                fullWidth
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>Stay Type</InputLabel>
+                <Select
+                  name="stay_type"
+                  value={formValues?.stay_type}
+                  onChange={handleFormChange}
+                  label="Category"
+                >
+                  <MenuItem value="">Stay Type</MenuItem>
+                  <MenuItem key={"1"} value={"Night Stay"}>
+                    Night Stay
+                  </MenuItem>
+                  <MenuItem key={"2"} value={"Weekly Stay"}>
+                    Weekly Stay
+                  </MenuItem>{" "}
+                  <MenuItem key={"3"} value={"Monthly Stay"}>
+                    Monthly Stay
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid
+              item
+              xs={12}
+              sx={{
+                border: "1px solid black",
+                borderWidth: "1px",
+                backgroundColor: "pink",
+              }}
+            >
+              Description
+              {console.log("jj", formValues)}
+              <ReactQuill
                 name="description"
-                label="Description"
-                multiline
-                rows={4}
-                variant="outlined"
-                value={formValues.description}
-                onChange={handleFormChange}
+                label="Product Description"
+                value={formValues.long_description}
+                onChange={handleInputChangedescription}
+                style={{ marginBottom: "1rem" }}
               />
             </Grid>
+
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -321,7 +490,7 @@ const ListingForm = () => {
                 label="No of Guests"
                 type="number"
                 variant="outlined"
-                value={formValues.no_of_guests}
+                value={formValues?.no_of_guests}
                 onChange={handleFormChange}
               />
             </Grid>
@@ -332,7 +501,7 @@ const ListingForm = () => {
                 label="No of Adults"
                 type="number"
                 variant="outlined"
-                value={formValues.no_of_adults}
+                value={formValues?.no_of_adults}
                 onChange={handleFormChange}
               />
             </Grid>
@@ -343,7 +512,7 @@ const ListingForm = () => {
                 label="No of Pets"
                 type="number"
                 variant="outlined"
-                value={formValues.no_of_pets}
+                value={formValues?.no_of_pets}
                 onChange={handleFormChange}
               />
             </Grid>
@@ -354,12 +523,12 @@ const ListingForm = () => {
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <p>Features:</p>
-              {Features.map((item) => (
+              {Features?.map((item) => (
                 <FormControlLabel
                   key={item.id}
                   control={
                     <Checkbox
-                      checked={formValues.features.includes(`${item.id}`)}
+                      checked={formValues?.features?.includes(`${item.id}`)}
                       onChange={handleCheckboxChange}
                       name={item.id}
                     />
@@ -399,8 +568,40 @@ const ListingForm = () => {
                 onChange={handleFormChange}
               />
             </Grid>
+
+            <Grid item xs={12}>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>Location</InputLabel>
+                <Select
+                  name="locations"
+                  value={formValues.city}
+                  onChange={settingLocationByDropDown}
+                  defaultValue={""}
+                  label="locations"
+                >
+                  <MenuItem value="" disabled>
+                    Select Location
+                  </MenuItem>
+                  {/* Render dropdown options dynamically */}
+                  {locations?.map((category) => (
+                    <MenuItem key={category.id} value={category.city}>
+                      {category.city}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
             <h4>Please Select Your Location:</h4>
-            <MapWithPinpoint choseLocation={settingLocation} />
+            {console.log("first", formValues)}
+            <MapWithPinpoint
+              choseLocation={settingLocation}
+              pos={
+                formValues.lat
+                  ? [formValues.lat, formValues.lon]
+                  : [33.7077, 73.0498]
+              }
+            />
           </Grid>
         );
       case 2:
@@ -425,7 +626,7 @@ const ListingForm = () => {
                 </Button>
               </label>
               <Box mt={2}>
-                {formValues.gallery.map((image, index) => (
+                {formValues?.gallery?.map((image, index) => (
                   <img
                     key={index}
                     src={isEditing ? image.image : URL.createObjectURL(image)}
@@ -487,6 +688,7 @@ const ListingForm = () => {
           </div>
         </div>
         <hr />
+
         <Stepper my={4} activeStep={activeStep}>
           <Step>
             <StepLabel>Step 1</StepLabel>
@@ -522,7 +724,7 @@ const ListingForm = () => {
       <Typography variant="h4" align="center" gutterBottom>
         All Listing
       </Typography>
-      {listings.map((listing) => (
+      {listings?.map((listing) => (
         <Box key={listing.id} bgcolor="white" my={2} p={2} border={1}>
           <Typography variant="h6">{listing.title}</Typography>
           <Typography variant="subtitle1">{listing.location}</Typography>

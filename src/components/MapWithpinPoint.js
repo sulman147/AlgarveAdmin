@@ -35,7 +35,7 @@
 
 // export default MapWithPinPoint;
 
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -60,8 +60,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-const MapWithPinPoint = ({ choseLocation }) => {
-  const position = [37.112, -8.25]; // Coordinates for the initial map position
+const MapWithPinPoint = ({ choseLocation, pos }) => {
+
+  // Coordinates for the initial map position
   const markerRef = useRef(null);
   const handleClick = (e) => {
     const { lat, lng } = e.latlng;
@@ -73,19 +74,23 @@ const MapWithPinPoint = ({ choseLocation }) => {
     if (markerRef.current) {
       markerRef.current.setLatLng(e.latlng);
     }
-    
+
   };
+
+  console.log("pos", pos)
 
   const LocationMarker = () => {
     useMapEvents({
       click: handleClick,
     });
 
-    return <Marker position={[0, 0]} ref={markerRef} />;
+    return <Marker position={pos} ref={markerRef} />;
   };
+
+
   return (
     <MapContainer
-      center={position}
+      center={pos}
       zoom={13}
       style={{ height: "400px", width: "100%" }}
     >

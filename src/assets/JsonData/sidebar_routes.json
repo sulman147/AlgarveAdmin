@@ -1,22 +1,37 @@
 [
-    {
-        "display_name": "Dashboard",
-        "route": "/",
-        "icon": "bx bx-category-alt"
-    },
-    {
-        "display_name": "Add Blog",
-        "route": "/addblog",
-        "icon": "bx bx-package"
-    },
-    {
-        "display_name": "Add Listing",
-        "route": "/addlisting",
-        "icon": "bx bx-package"
-    },
-    {
-        "display_name": "Add Location",
-        "route": "/addlocation",
-        "icon": "bx bx-package"
-    }
+  {
+    "display_name": "Dashboard",
+    "route": "/",
+    "icon": "bx bx-category-alt"
+  },
+  {
+    "display_name": "Add Blog",
+    "route": "/addblog",
+    "icon": "bx bx-package"
+  },
+  {
+    "display_name": "Add Listing",
+    "route": "/addlisting",
+    "icon": "bx bx-package"
+  },
+  {
+    "display_name": "Add Location",
+    "route": "/addlocation",
+    "icon": "bx bx-package"
+  },
+  {
+    "display_name": "Reviews",
+    "route": "/reviews",
+    "icon": "bx bx-package"
+  },
+  {
+    "display_name": "Customers",
+    "route": "/customers",
+    "icon": "bx bx-package"
+  },
+  {
+    "display_name": "Subscribers",
+    "route": "/subscribers",
+    "icon": "bx bx-package"
+  }
 ]

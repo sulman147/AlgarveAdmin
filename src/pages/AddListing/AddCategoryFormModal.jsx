@@ -15,7 +15,8 @@ import {
   TableRow,
   Paper,
 } from "@material-ui/core";
-import axios from "axios";
+
+import api from "../../api/api";
 import toastr from "toastr";
 import "toastr/build/toastr.min.css";
 
@@ -33,14 +34,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Api = "http://server.cashbackforever.net:5500/api/";
-const token = localStorage.getItem("accessToken");
-const config = {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-};
-
 let edit_id = "";
 let isEdit = false;
 
@@ -55,11 +48,7 @@ const AddCategoryFormModal = ({ isOpen, newCategories, onClose }) => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${Api}admin/category`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get(`admin/category`);
 
       // Process the response data
       const data = response.data;
@@ -77,8 +66,8 @@ const AddCategoryFormModal = ({ isOpen, newCategories, onClose }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (edit_id) {
-      await axios
-        .put(`${Api}admin/category/${edit_id}`, { name: category }, config)
+      await api
+        .put(`admin/category/${edit_id}`, { name: category })
         .then((res) => {
           if (res.data.success) {
             toastr.success(res.data.message);
@@ -92,19 +81,17 @@ const AddCategoryFormModal = ({ isOpen, newCategories, onClose }) => {
           }
         });
     } else {
-      await axios
-        .post(`${Api}admin/category`, { name: category }, config)
-        .then((res) => {
-          if (res.data.success) {
-            toastr.success(res.data.message);
-            fetchData();
-            setCategory("");
-            isEdit = false;
-            // setBlogData(initialBlogData);
-          } else {
-            toastr.error(res.data.message);
-          }
-        });
+      await api.post(`admin/category`, { name: category }).then((res) => {
+        if (res.data.success) {
+          toastr.success(res.data.message);
+          fetchData();
+          setCategory("");
+          isEdit = false;
+          // setBlogData(initialBlogData);
+        } else {
+          toastr.error(res.data.message);
+        }
+      });
     }
   };
 
@@ -117,7 +104,7 @@ const AddCategoryFormModal = ({ isOpen, newCategories, onClose }) => {
 
   const handleDelete = async (id) => {
     // Remove the feature from the list
-    await axios.delete(`${Api}admin/features/${id}`, config).then((res) => {
+    await api.delete(`admin/features/${id}`).then((res) => {
       if (res.data.success) {
         toastr.success(res.data.message);
         fetchData();
