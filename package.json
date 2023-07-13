@@ -2,6 +2,12 @@
   "name": "feedback-managment-system",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "start": "react-scripts --openssl-legacy-provider start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
   "dependencies": {
     "workspaces": [
       "packages/*"
@@ -47,12 +53,6 @@
     "toastr": "^2.1.4",
     "web-vitals": "^1.1.2",
     "webpack": "^5.87.0"
-  },
-  "scripts": {
-    "start": "react-scripts --openssl-legacy-provider start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
