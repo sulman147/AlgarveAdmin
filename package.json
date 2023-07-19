@@ -9,9 +9,6 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "workspaces": [
-      "packages/*"
-    ],
     "@coreui/coreui": "^4.1.0",
     "@coreui/react": "^4.1.1",
     "@lexical/react": "^0.11.1",
